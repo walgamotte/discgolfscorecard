@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MultiPlayerDiscGolfApp()
+                    CustomParDiscGolfApp()
                 }
             }
         }
@@ -41,9 +41,11 @@ class MainActivity : ComponentActivity() {
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MultiPlayerDiscGolfApp() {
+fun CustomParDiscGolfApp() {
     val totalHoles = 18
     val defaultPar = 3
+    
+    // Using mutableStateListOf so Compose detects changes when a specific hole par is modified
     val pars = remember { mutableStateListOf(*Array(totalHoles) { defaultPar }) }
     val players = remember { mutableStateListOf<Player>() }
     var newPlayerName by remember { mutableStateOf("") }
@@ -52,12 +54,13 @@ fun MultiPlayerDiscGolfApp() {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Multiplayer Scorecard", fontWeight = FontWeight.Bold) },
+                title = { Text("Custom Par Scorecard", fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
             )
         }
     ) { innerPadding ->
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            // Add Player Registration Card
             Card(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Add Players", fontWeight = FontWeight.Bold)
@@ -79,6 +82,7 @@ fun MultiPlayerDiscGolfApp() {
                 }
             }
 
+            // Real-time Leaderboard Banner
             if (players.isNotEmpty()) {
                 Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
                     Column(modifier = Modifier.padding(12.dp)) {
@@ -95,15 +99,42 @@ fun MultiPlayerDiscGolfApp() {
                 }
             }
 
-            Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            // Interactive Hole and Par Controller Row
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.dp), 
+                horizontalArrangement = Arrangement.SpaceBetween, 
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Button(onClick = { currentHoleIndex-- }, enabled = currentHoleIndex > 0) { Text("Prev") }
+                
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("Hole ${currentHoleIndex + 1}", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                    Text("Par ${pars[currentHoleIndex]}", color = Color.Gray)
+                    
+                    // Mini Controls to modify par for the current hole row
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        FilledIconButton(
+                            onClick = { if (pars[currentHoleIndex] > 2) pars[currentHoleIndex]-- },
+                            modifier = Modifier.size(28.dp),
+                            colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                        ) { Icon(Icons.Default.Remove, "Less Par", modifier = Modifier.size(16.dp)) }
+                        
+                        Text("Par ${pars[currentHoleIndex]}", fontWeight = FontWeight.Medium, fontSize = 16.sp)
+                        
+                        FilledIconButton(
+                            onClick = { if (pars[currentHoleIndex] < 6) pars[currentHoleIndex]++ },
+                            modifier = Modifier.size(28.dp),
+                            colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                        ) { Icon(Icons.Default.Add, "More Par", modifier = Modifier.size(16.dp)) }
+                    }
                 }
+                
                 Button(onClick = { currentHoleIndex++ }, enabled = currentHoleIndex < totalHoles - 1) { Text("Next") }
             }
 
+            // Active Player Score Tracking List
             LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 itemsIndexed(players) { playerIndex, player ->
                     val currentStrokeCount = player.scores[currentHoleIndex]
@@ -118,13 +149,20 @@ fun MultiPlayerDiscGolfApp() {
                                         updatedScores[currentHoleIndex] = currentStrokeCount - 1
                                         players[playerIndex] = player.copy(scores = updatedScores)
                                     }
-                                }) { Icon(Icons.Default.Remove, "Less") }
-                                Text(currentStrokeCount.toString(), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = if (currentStrokeCount < currentPar) Color(0xFF388E3C) else if (currentStrokeCount > currentPar) Color(0xFFD32F2F) else Color.Unspecified)
+                                }) { Icon(Icons.Default.Remove, "Less Strokes") }
+                                
+                                Text(
+                                    currentStrokeCount.toString(), 
+                                    fontSize = 22.sp, 
+                                    fontWeight = FontWeight.Bold, 
+                                    color = if (currentStrokeCount < currentPar) Color(0xFF388E3C) else if (currentStrokeCount > currentPar) Color(0xFFD32F2F) else Color.Unspecified
+                                )
+                                
                                 IconButton(onClick = {
                                     val updatedScores = ArrayList(player.scores)
                                     updatedScores[currentHoleIndex] = currentStrokeCount + 1
                                     players[playerIndex] = player.copy(scores = updatedScores)
-                                }) { Icon(Icons.Default.Add, "More") }
+                                }) { Icon(Icons.Default.Add, "More Strokes") }
                             }
                         }
                     }
@@ -132,13 +170,10 @@ fun MultiPlayerDiscGolfApp() {
             }
 
             if (players.isNotEmpty()) {
-                Button(onClick = { players.clear(); currentHoleIndex = 0 }, modifier = Modifier.fillMaxWidth().padding(16.dp), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
-                    Text("Clear All Players", color = Color.White)
+                Button(onClick = { players.clear(); currentHoleIndex = 0; for(i in 0 until totalHoles) pars[i] = defaultPar }, modifier = Modifier.fillMaxWidth().padding(16.dp), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
+                    Text("Clear All Players & Pars", color = Color.White)
                 }
             }
         }
     }
 }
-
-
-
