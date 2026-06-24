@@ -9,8 +9,7 @@ A lightweight, native Android application designed to track scores for multiple 
 You do not need Android Studio or any coding tools to install this app. Just follow these steps directly on your Android phone:
 
 1. **Download the App**: 
-   * Navigate to the **[Releases](https://github.com)** section on the right side of this GitHub page.
-   * Tap on the latest release and download the attached `DiscGolfScorecard.apk` file.
+   * Download the `DiscGolfScorecard.apk` file.
 2. **Open the File**: Once the download completes, tap the file in your notification bar or open it from your phone's **Downloads** folder.
 3. **Allow Installation**:
    * If your phone says your browser isn't allowed to install unknown apps, tap **Settings** in the prompt and toggle on **Allow from this source**.
